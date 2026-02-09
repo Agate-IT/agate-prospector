@@ -15,6 +15,22 @@ console.log("🚀 [AGATE] ========== CONTENT SCRIPT DEMARRE ==========");
 console.log("🚀 [AGATE] URL:", window.location.href);
 console.log("🚀 [AGATE] Timestamp:", new Date().toISOString());
 
+// ============================================================
+// FORMAT NAME - Fallback si shared-config.js pas chargé
+// ============================================================
+if (typeof formatName === 'undefined') {
+  function formatName(fullName) {
+    if (!fullName || typeof fullName !== "string") return "";
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 0) return "";
+    // Premier mot = prénom (première lettre majuscule, reste en minuscule)
+    const prenom = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+    // Reste = nom (tout en majuscules)
+    const nom = parts.slice(1).map(p => p.toUpperCase()).join(" ");
+    return nom ? `${prenom} ${nom}` : prenom;
+  }
+}
+
 /**
  * MAPPING SECTEUR AUTOMATIQUE
  */

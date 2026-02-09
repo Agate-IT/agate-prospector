@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGATE Prospector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">&#9670;</span>
+      <span class="logo-text">AGATE Prospector</span>
+    </div>
+    <button id="settingsBtn" class="settings-btn" title="Parametres">&#9881;</button>
+  </div>
+
+  <!-- VUE PRINCIPALE : Apercu des donnees -->
+  <div id="mainView">
+    <!-- Message si pas sur LinkedIn -->
+    <div id="notLinkedIn" class="message-box error" style="display:none;">
+      <span class="message-icon">&#9888;</span>
+      <span>Ouvrez un profil LinkedIn pour capturer un prospect.</span>
+    </div>
+
+    <!-- Formulaire de donnees -->
+    <div id="dataForm" style="display:none;">
+      <div class="form-group">
+        <label for="fieldName">Nom</label>
+        <input type="text" id="fieldName" placeholder="Nom du prospect">
+      </div>
+
+      <div class="form-group">
+        <label for="fieldCompany">Organisation</label>
+        <input type="text" id="fieldCompany" placeholder="Entreprise">
+      </div>
+
+      <div class="form-group">
+        <label for="fieldJobTitle">Intitule de poste</label>
+        <input type="text" id="fieldJobTitle" placeholder="Poste occupe">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="fieldSector">Secteur</label>
+          <select id="fieldSector">
+            <option value="">-- Choisir --</option>
+            <option value="Retail">Retail</option>
+            <option value="Ecommerce">Ecommerce</option>
+            <option value="Telecoms">Telecoms</option>
+            <option value="Medias">Medias</option>
+            <option value="Luxe">Luxe</option>
+            <option value="Grande Distribution">Grande Distribution</option>
+          </select>
+        </div>
+        <div class="form-group half">
+          <label for="fieldStatus">Statut</label>
+          <select id="fieldStatus">
+            <option value="A contacter" selected>A contacter</option>
+            <option value="Mail envoye">Mail envoye</option>
+            <option value="NRP">NRP</option>
+            <option value="Pas interesse">Pas interesse</option>
+            <option value="RDV pris">RDV pris</option>
+            <option value="Pas de projet">Pas de projet</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fieldPhone">Telephone</label>
+        <input type="tel" id="fieldPhone" placeholder="+33 6 ...">
+      </div>
+
+      <div class="form-group">
+        <label for="fieldPhone2">Telephone 2</label>
+        <input type="tel" id="fieldPhone2" placeholder="Numero secondaire">
+      </div>
+
+      <div class="form-group">
+        <label for="fieldEmail">Email</label>
+        <input type="email" id="fieldEmail" placeholder="email@entreprise.com">
+      </div>
+
+      <div class="form-group">
+        <label for="fieldLinkedin">LinkedIn</label>
+        <input type="url" id="fieldLinkedin" placeholder="URL du profil" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="fieldNotes">Notes</label>
+        <textarea id="fieldNotes" placeholder="Notes supplementaires..." rows="2"></textarea>
+      </div>
+
+      <!-- Bouton d'envoi -->
+      <button id="sendToNotion" class="btn-primary">
+        <span class="btn-icon">&#10148;</span>
+        Envoyer dans Notion
+      </button>
+
+      <!-- Message de succes/erreur -->
+      <div id="successMsg" class="message-box success" style="display:none;">
+        <span class="message-icon">&#10003;</span>
+        <span>Prospect ajoute dans Notion !</span>
+      </div>
+
+      <div id="errorMsg" class="message-box error" style="display:none;">
+        <span class="message-icon">&#10007;</span>
+        <span id="errorText">Erreur lors de l'envoi.</span>
+      </div>
+
+      <div id="duplicateMsg" class="message-box warning" style="display:none;">
+        <span class="message-icon">&#9888;</span>
+        <span>Ce prospect semble deja exister dans votre Notion.</span>
+      </div>
+    </div>
+
+    <!-- Chargement -->
+    <div id="loadingView" style="display:none;">
+      <div class="spinner"></div>
+      <p>Lecture des donnees...</p>
+    </div>
+  </div>
+
+  <!-- VUE PARAMETRES -->
+  <div id="settingsView" style="display:none;">
+    <h2>Parametres</h2>
+
+    <div class="form-group">
+      <label for="notionApiKey">Cle API Notion</label>
+      <input type="password" id="notionApiKey" placeholder="secret_xxxxxxxx...">
+      <small>Creez une integration sur <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a></small>
+    </div>
+
+    <div class="form-group">
+      <label for="notionDatabaseId">ID de la base Notion</label>
+      <input type="text" id="notionDatabaseId" placeholder="abc123def456...">
+      <small>Copiez l'ID depuis l'URL de votre base Notion</small>
+    </div>
+
+    <div class="btn-row">
+      <button id="saveSettings" class="btn-primary">Sauvegarder</button>
+      <button id="backBtn" class="btn-secondary">Retour</button>
+    </div>
+
+    <div id="settingsSuccess" class="message-box success" style="display:none;">
+      <span class="message-icon">&#10003;</span>
+      <span>Parametres sauvegardes !</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

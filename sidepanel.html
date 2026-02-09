@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGATE Prospector</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <button id="globalBackBtn" class="global-back-btn" style="display:none;" title="Retour">‹</button>
+      <span class="logo-icon">◆</span>
+      <span class="logo-text">AGATE Prospector</span>
+    </div>
+    <div class="header-actions">
+      <button id="refreshBtn" class="icon-btn" title="Rafraîchir">↻</button>
+      <button id="settingsBtn" class="icon-btn" title="Paramètres">⚙</button>
+    </div>
+  </div>
+
+  <!-- NAVIGATION PAR ONGLETS -->
+  <nav id="tabNav" class="tab-nav">
+    <button class="tab-btn active" data-view="mainView" title="Prospect">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">Prospect</span>
+    </button>
+    <button class="tab-btn" data-view="remindersView" title="Rappels">
+      <span class="tab-icon">🔔</span>
+      <span class="tab-label">Rappels</span>
+      <span id="reminderBadge" class="tab-badge" style="display:none;">0</span>
+    </button>
+    <button class="tab-btn" data-view="searchView" title="Recherche">
+      <span class="tab-icon">🔍</span>
+      <span class="tab-label">Recherche</span>
+    </button>
+    <button class="tab-btn" data-view="pipelineView" title="Pipeline">
+      <span class="tab-icon">📊</span>
+      <span class="tab-label">Pipeline</span>
+    </button>
+    <button class="tab-btn" data-view="tasksView" title="Tâches">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">Tâches</span>
+      <span id="taskOverdueBadge" class="tab-badge" style="display:none;">0</span>
+    </button>
+  </nav>
+
+  <!-- BARRE DE STATUT -->
+  <div id="statusBar" class="status-bar">
+    <span id="statusDot" class="status-dot"></span>
+    <span id="statusText">En attente d'un profil LinkedIn...</span>
+  </div>
+
+  <!-- VUE PRINCIPALE -->
+  <div id="mainView">
+    <!-- Message si pas sur LinkedIn -->
+    <div id="notLinkedIn" class="message-box info" style="display:none;">
+      <span class="message-icon">🔍</span>
+      <div>
+        <strong>Naviguez sur un profil LinkedIn</strong>
+        <p>Le panneau détectera automatiquement le profil et pré-remplira les données.</p>
+      </div>
+    </div>
+
+    <!-- Formulaire de données -->
+    <div id="dataForm" style="display:none;">
+
+      <!-- Section : Identité -->
+      <div class="section">
+        <div class="section-title">
+          👤 Identité
+          <span id="scoreSection" class="score-badge-wrapper" style="display:none;" title="Score prospect">
+            <span id="scoreBadge" class="score-badge"></span>
+            <span id="scoreLabel" class="score-label"></span>
+          </span>
+        </div>
+
+        <!-- Score details (collapsible) -->
+        <div id="scoreDetails" class="score-details" style="display:none;"></div>
+
+        <div class="form-group">
+          <label for="fieldName">Nom complet</label>
+          <input type="text" id="fieldName" placeholder="Prénom Nom">
+        </div>
+
+        <div class="form-group">
+          <label for="fieldCompany">Organisation</label>
+          <input type="text" id="fieldCompany" placeholder="Nom de l'entreprise">
+        </div>
+
+        <div class="form-group">
+          <label for="fieldJobTitle">Poste</label>
+          <input type="text" id="fieldJobTitle" placeholder="Intitulé du poste">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="fieldSector">Secteur</label>
+            <input type="text" id="fieldSector" list="sectorListSp" placeholder="Secteur..." autocomplete="off">
+            <datalist id="sectorListSp">
+              <option value="Retail">
+              <option value="Ecommerce">
+              <option value="Télécoms">
+              <option value="Médias">
+              <option value="Luxe">
+              <option value="Grande Distribution">
+              <option value="Conseil">
+              <option value="Hospitality">
+            </datalist>
+          </div>
+          <div class="form-group half">
+            <label for="fieldStatus">Statut</label>
+            <select id="fieldStatus">
+              <option value="A contacter" selected>À contacter</option>
+              <option value="Mail envoye">Mail envoyé</option>
+              <option value="NRP">NRP</option>
+              <option value="Pas interesse">Pas intéressé</option>
+              <option value="RDV pris">RDV pris</option>
+              <option value="Pas de projet">Pas de prestation</option>
+              <option value="A rappeler">À rappeler</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tags technos -->
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Tags technos</label>
+          <div class="tags-container-sp" id="tagsContainerSp">
+            <span class="tag-placeholder-sp">Aucun tag détecté</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section : Contact -->
+      <div class="section">
+        <div class="section-title">📱 Contact</div>
+
+        <div class="form-group">
+          <label for="fieldPhone">Téléphone principal</label>
+          <div class="input-with-action">
+            <input type="tel" id="fieldPhone" placeholder="+33 6 00 00 00 00">
+            <button class="lusha-field-btn" data-target="fieldPhone" title="Remplir via Lusha">
+              <span class="lusha-btn-icon">🔍</span>
+              <span class="lusha-btn-spinner" style="display:none;"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="fieldPhone2">Téléphone secondaire</label>
+          <div class="input-with-action">
+            <input type="tel" id="fieldPhone2" placeholder="Optionnel">
+            <button class="lusha-field-btn" data-target="fieldPhone2" title="Remplir via Lusha">
+              <span class="lusha-btn-icon">🔍</span>
+              <span class="lusha-btn-spinner" style="display:none;"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="fieldEmail">Email professionnel</label>
+          <div class="input-with-action">
+            <input type="email" id="fieldEmail" placeholder="prenom.nom@entreprise.com">
+            <button class="lusha-field-btn" data-target="fieldEmail" title="Remplir via Lusha">
+              <span class="lusha-btn-icon">🔍</span>
+              <span class="lusha-btn-spinner" style="display:none;"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section : Pitch IA -->
+      <div id="aiEnrichSection" class="section ai-section" style="display:none;">
+        <div class="section-title">🤖 Pitch IA</div>
+        <div class="ai-content" id="aiContent">
+          <button id="aiGenerateBtn" class="btn-ai-generate">🤖 Générer un pitch</button>
+          <div id="aiLoading" class="ai-loading" style="display:none;">
+            <div class="spinner" style="width:16px;height:16px;border-width:2px;"></div>
+            <span>Génération en cours...</span>
+          </div>
+          <div id="aiResult" style="display:none;">
+            <p id="aiPitchText" class="ai-pitch-text"></p>
+            <div class="ai-actions">
+              <button id="aiSendLinkedinBtn" class="btn-ai-send">💬 Envoyer sur LinkedIn</button>
+              <button id="aiCopyBtn" class="btn-secondary btn-sm">📋 Copier</button>
+              <button id="aiRefreshBtn" class="btn-secondary btn-sm">↻ Régénérer</button>
+            </div>
+          </div>
+          <div id="aiError" class="ai-error" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- Section : Liens & Notes -->
+      <div class="section">
+        <div class="section-title">🔗 Informations</div>
+
+        <div class="form-group">
+          <label for="fieldLinkedin">Profil LinkedIn</label>
+          <input type="url" id="fieldLinkedin" placeholder="URL du profil" readonly>
+        </div>
+
+        <div class="form-group">
+          <label for="fieldNotes">Notes</label>
+          <textarea id="fieldNotes" placeholder="Informations complémentaires, contexte, historique..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Boutons d'envoi -->
+      <div class="send-buttons">
+        <button id="sendToNotion" class="btn-primary">
+          <span class="btn-icon">→</span>
+          Envoyer dans Notion
+        </button>
+
+        <button id="sendToBoond" class="btn-boond" disabled title="Bientôt disponible">
+          <span class="btn-icon">→</span>
+          Envoyer dans Boond
+          <span class="badge-soon">Bientôt</span>
+        </button>
+
+        <button id="sendToBoth" class="btn-both" disabled title="Bientôt disponible">
+          <span class="btn-icon">→</span>
+          Envoyer dans les deux
+          <span class="badge-soon">Bientôt</span>
+        </button>
+
+        <button id="exportVcard" class="btn-vcard" title="Exporter en vCard pour Contacts Apple">
+          <span class="btn-icon">↓</span>
+          Exporter Contact
+        </button>
+      </div>
+
+      <!-- Section Actions rapides -->
+      <div id="actionsSection" class="section actions-section" style="display:none;">
+        <div class="section-title">⚡ Actions rapides</div>
+        <div class="actions-bar">
+          <button class="action-btn action-call" data-action="appeler">📞<span>Appeler</span></button>
+          <div class="email-dropdown-sp" id="emailDropdownSp">
+            <button class="action-btn action-mail" id="emailBtnSp">✉️<span>Mail ▾</span></button>
+            <div class="email-dropdown-menu-sp" id="emailMenuSp">
+              <div class="email-suggestion-sp" id="emailSuggestionSp" style="display:none;">
+                <span class="suggestion-label-sp">✨ Suggéré</span>
+                <span class="suggestion-template-sp" id="suggestedTemplateName"></span>
+              </div>
+              <div class="email-menu-divider-sp"></div>
+              <button class="email-template-option-sp" data-template="ai_data">🤖 IA / Data</button>
+              <button class="email-template-option-sp" data-template="dev">💻 Dev</button>
+              <button class="email-template-option-sp" data-template="cloud_devops">☁️ Cloud/DevOps</button>
+              <button class="email-template-option-sp" data-template="security">🔒 Cyber</button>
+              <button class="email-template-option-sp" data-template="product">📊 Product</button>
+              <button class="email-template-option-sp" data-template="generic">📝 Générique</button>
+            </div>
+          </div>
+          <button class="action-btn action-r1" data-action="r1">🔄<span>R1</span></button>
+          <button class="action-btn action-r2" data-action="r2">🔄<span>R2</span></button>
+          <button class="action-btn action-r3" data-action="r3">🔄<span>R3</span></button>
+          <button class="action-btn action-rdv" data-action="rdv">📅<span>RDV</span></button>
+          <div class="rappel-dropdown-sp" id="rappelDropdownSp">
+            <button class="action-btn action-rappeler" id="rappelBtnSp">🔔<span>Rappeler ▾</span></button>
+            <div class="rappel-menu-sp" id="rappelMenuSp">
+              <button class="rappel-opt-sp" data-delay="2">J+2 <small>2 jours</small></button>
+              <button class="rappel-opt-sp" data-delay="3">J+3 <small>3 jours</small></button>
+              <button class="rappel-opt-sp" data-delay="7">J+7 <small>1 semaine</small></button>
+            </div>
+          </div>
+        </div>
+        <div class="action-comment-row-sp">
+          <input type="text" class="action-comment-input-sp" id="actionCommentSp" placeholder="Commentaire (ex: NRP, Intéressé, RDV fixé...)" autocomplete="off">
+        </div>
+        <div id="actionFeedback" class="action-feedback" style="display:none;"></div>
+
+        <!-- Historique des actions -->
+        <div class="history-section-sp" id="historySectionSp">
+          <div class="history-label-sp">
+            <span>📜 Historique</span>
+            <span class="history-toggle-sp" id="historyToggleSp" style="display:none;">Voir tout</span>
+          </div>
+          <div class="history-content-sp" id="historyContentSp">
+            <div class="history-empty-sp">Aucune action enregistrée</div>
+          </div>
+        </div>
+
+        <!-- Historique emails (Outlook) -->
+        <div class="email-history-section" id="emailHistorySection" style="display:none;">
+          <div class="email-history-header">
+            <span class="email-history-title">📧 Historique emails</span>
+            <button class="email-history-refresh" id="emailHistoryRefresh" title="Rafraichir">↻</button>
+          </div>
+          <div class="email-history-list" id="emailHistoryList">
+            <div class="email-history-empty">Aucun historique disponible</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div id="successMsg" class="message-box success" style="display:none;">
+        <span class="message-icon">✓</span>
+        <span>Prospect ajouté dans Notion !</span>
+      </div>
+
+      <div id="errorMsg" class="message-box error" style="display:none;">
+        <span class="message-icon">✕</span>
+        <span id="errorText">Erreur lors de l'envoi.</span>
+      </div>
+
+      <div id="duplicateMsg" class="message-box info" style="display:none;">
+        <span class="message-icon">ℹ️</span>
+        <span>Contact déjà présent dans Notion.</span>
+      </div>
+
+    </div>
+
+    <!-- Chargement -->
+    <div id="loadingView" style="display:none;">
+      <div class="spinner"></div>
+      <p>Lecture des données...</p>
+    </div>
+  </div>
+
+  <!-- VUE PARAMÈTRES -->
+  <div id="settingsView" style="display:none;">
+    <div class="section">
+      <div class="section-title">⚙️ Configuration</div>
+
+      <div class="form-group">
+        <label>Thème</label>
+        <div class="theme-toggle-row">
+          <span>🌙 Sombre</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span>☀️ Clair</span>
+        </div>
+      </div>
+
+      <div class="settings-divider"></div>
+
+      <div class="form-group">
+        <label for="notionApiKey">Clé API Notion</label>
+        <input type="password" id="notionApiKey" placeholder="secret_xxxxxxxx...">
+        <small>Créez une intégration sur <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a></small>
+      </div>
+
+      <div class="form-group">
+        <label for="notionDatabaseId">ID de la base Notion</label>
+        <input type="text" id="notionDatabaseId" placeholder="Copiez l'ID depuis l'URL de votre base">
+        <small>Format: abc123def456... ou URL complète</small>
+      </div>
+
+      <div class="form-group">
+        <label for="lushaApiKey">Clé API Lusha (optionnel)</label>
+        <input type="password" id="lushaApiKey" placeholder="Clé API Lusha pour l'enrichissement">
+        <small>Pour l'enrichissement automatique des contacts</small>
+      </div>
+
+      <div class="form-group">
+        <label for="openaiApiKey">Clé API OpenAI (optionnel)</label>
+        <input type="password" id="openaiApiKey" placeholder="sk-xxxxxxxx...">
+        <small>Pour le pitch IA automatique. <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--accent-light);">Obtenir une clé</a></small>
+      </div>
+
+      <!-- Templates Email Personnalisés -->
+      <div class="settings-divider"></div>
+      <div class="section-title" style="margin-top: 16px;">✉️ Templates Email</div>
+      <small class="settings-help-text">Créez vos propres templates. Placeholders : <code>{prenom}</code> <code>{entreprise}</code> <code>{poste}</code> <code>{secteur}</code> <code>{tags}</code></small>
+
+      <div id="customTemplatesList" class="template-editor-list"></div>
+
+      <button id="newTemplateBtn" class="btn-secondary" style="width:100%;margin-top:8px;">+ Nouveau template</button>
+
+      <div id="templateEditorForm" style="display:none;margin-top:12px;" class="template-editor-form">
+        <div class="form-group">
+          <label for="templateEditorName">Nom du template</label>
+          <input type="text" id="templateEditorName" placeholder="Ex: Offre Cloud Azure">
+        </div>
+        <div class="form-group">
+          <label for="templateEditorSubject">Objet de l'email</label>
+          <input type="text" id="templateEditorSubject" placeholder="Ex: AGATE - Proposition {entreprise}">
+        </div>
+        <div class="form-group">
+          <label for="templateEditorBody">Corps de l'email</label>
+          <textarea id="templateEditorBody" rows="8" placeholder="Bonjour {prenom},&#10;&#10;Votre message ici..."></textarea>
+        </div>
+        <div class="btn-row" style="margin-top:8px;">
+          <button id="templateEditorSave" class="btn-primary">Sauvegarder</button>
+          <button id="templateEditorCancel" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Outlook Configuration -->
+      <div class="settings-divider"></div>
+      <div class="section-title" style="margin-top: 16px;">📧 Microsoft Outlook</div>
+      <small class="settings-help-text">Connectez votre Outlook pour envoyer les relances (R1/R2/R3) directement depuis AGATE.</small>
+
+      <div class="form-group">
+        <label for="outlookClientId">Client ID Azure</label>
+        <input type="text" id="outlookClientId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        <small>Creez une app sur <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" style="color: var(--accent-light);">Azure Portal</a> (gratuit)</small>
+      </div>
+
+      <div id="outlookConnectionStatus" class="outlook-status">
+        <div id="outlookStatusIndicator" class="outlook-status-indicator disconnected">
+          <span class="outlook-status-dot"></span>
+          <span id="outlookStatusLabel">Non connecte</span>
+        </div>
+        <div id="outlookUserEmail" class="outlook-user-email" style="display:none;"></div>
+      </div>
+
+      <div class="btn-row-outlook">
+        <button id="outlookConnectBtn" class="btn-outlook-connect">
+          <span class="btn-icon">🔗</span>
+          Connecter Outlook
+        </button>
+        <button id="outlookDisconnectBtn" class="btn-outlook-disconnect" style="display:none;">
+          <span class="btn-icon">✕</span>
+          Deconnecter
+        </button>
+      </div>
+
+      <details class="outlook-guide">
+        <summary>📖 Guide : Creer une app Azure (gratuit)</summary>
+        <div class="outlook-guide-content">
+          <ol>
+            <li>Allez sur <a href="https://portal.azure.com" target="_blank" style="color: var(--accent-light);">portal.azure.com</a> et connectez-vous avec votre compte Microsoft</li>
+            <li>Cherchez <strong>"Inscriptions d'applications"</strong> dans la barre de recherche</li>
+            <li>Cliquez <strong>"Nouvelle inscription"</strong></li>
+            <li>Nom : <code>AGATE Prospector</code></li>
+            <li>Type de compte : <strong>Comptes dans un annuaire organisationnel et comptes Microsoft personnels</strong></li>
+            <li>URI de redirection : Type <strong>Web</strong>, URL :
+              <br><code id="outlookRedirectUri">--</code>
+              <button class="copy-btn" id="copyRedirectUri" title="Copier">📋</button>
+            </li>
+            <li>Cliquez <strong>"Inscrire"</strong></li>
+            <li>Copiez le <strong>ID d'application (client)</strong> et collez-le ci-dessus</li>
+            <li>Allez dans "Authentification" > cochez <strong>"Jetons d'acces"</strong> et <strong>"Jetons d'ID"</strong> > Enregistrer</li>
+            <li>Allez dans "Autorisations de l'API" > "Ajouter" > "Microsoft Graph" > Autorisations deleguees :
+              <br><code>Mail.Read</code>, <code>Mail.Send</code>, <code>offline_access</code>, <code>User.Read</code>
+            </li>
+          </ol>
+          <p class="outlook-guide-note">Aucun administrateur IT n'est necessaire. Un compte Microsoft gratuit suffit.</p>
+        </div>
+      </details>
+
+      <div class="btn-row">
+        <button id="saveSettings" class="btn-primary">Sauvegarder</button>
+        <button id="backBtn" class="btn-secondary">Retour</button>
+      </div>
+
+      <div id="settingsSuccess" class="message-box success" style="display:none;">
+        <span class="message-icon">✓</span>
+        <span>Paramètres sauvegardés !</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VUE RAPPELS ET RELANCES -->
+  <div id="remindersView" style="display:none;">
+    <div class="view-header">
+      <h2 class="view-title">Rappels & Relances</h2>
+      <button id="refreshReminders" class="icon-btn" title="Rafraichir">↻</button>
+    </div>
+    <div id="reminderStats" class="reminder-stats">
+      <div class="stat-chip stat-overdue">
+        <span class="stat-count" id="overdueCount">0</span>
+        <span class="stat-label">En retard</span>
+      </div>
+      <div class="stat-chip stat-today">
+        <span class="stat-count" id="todayCount">0</span>
+        <span class="stat-label">Aujourd'hui</span>
+      </div>
+      <div class="stat-chip stat-upcoming">
+        <span class="stat-count" id="upcomingCount">0</span>
+        <span class="stat-label">A venir</span>
+      </div>
+    </div>
+    <div id="remindersList" class="reminders-list"></div>
+    <div id="remindersEmpty" class="empty-state" style="display:none;">
+      <span class="empty-icon">🎉</span>
+      <p>Aucune relance en attente</p>
+      <small>Les rappels apparaitront ici quand vous programmerez des relances.</small>
+    </div>
+    <div id="remindersLoading" class="view-loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>Chargement des relances...</p>
+    </div>
+  </div>
+
+  <!-- VUE RECHERCHE -->
+  <div id="searchView" style="display:none;">
+    <div class="view-header">
+      <h2 class="view-title">Recherche</h2>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Nom, entreprise, email..." autocomplete="off">
+      <button id="searchClear" class="search-clear" style="display:none;">✕</button>
+    </div>
+    <div class="search-filters">
+      <select id="searchStatusFilter" class="search-filter-select">
+        <option value="">Tous les statuts</option>
+        <option value="À contacter">A contacter</option>
+        <option value="Mail envoyé">Mail envoyé</option>
+        <option value="NRP">NRP</option>
+        <option value="RDV pris">RDV pris</option>
+        <option value="À rappeler">A rappeler</option>
+        <option value="R1">R1</option>
+        <option value="R2">R2</option>
+        <option value="R3">R3</option>
+      </select>
+      <span id="searchResultCount" class="search-count"></span>
+    </div>
+    <div id="searchFiltersAdvanced" class="search-filters-advanced"></div>
+    <div class="search-sort-row">
+      <small style="color:var(--text-muted);">Trier par :</small>
+      <select id="searchSortBy" class="search-sort-select">
+        <option value="relevance">Pertinence</option>
+        <option value="score">Score ↓</option>
+        <option value="date">Date récente ↓</option>
+        <option value="name">Nom A→Z</option>
+      </select>
+    </div>
+    <div id="searchResults" class="search-results"></div>
+    <div id="searchInitial" class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <p>Recherchez dans votre base Notion</p>
+      <small>Tapez au moins 2 caracteres pour lancer la recherche.</small>
+    </div>
+    <div id="searchLoading" class="view-loading" style="display:none;">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- VUE PIPELINE -->
+  <div id="pipelineView" style="display:none;">
+    <div class="view-header">
+      <h2 class="view-title">Pipeline</h2>
+      <button id="refreshPipeline" class="icon-btn" title="Rafraichir">↻</button>
+    </div>
+    <div id="pipelineTotal" class="pipeline-total"></div>
+    <div id="pipelineBars" class="pipeline-bars"></div>
+    <div id="pipelineDetail" class="pipeline-detail" style="display:none;">
+      <div class="pipeline-detail-header">
+        <span id="pipelineDetailTitle" class="pipeline-detail-title"></span>
+        <button id="pipelineDetailClose" class="pipeline-close-btn">✕</button>
+      </div>
+      <div id="pipelineDetailList" class="pipeline-detail-list"></div>
+    </div>
+    <div id="pipelineLoading" class="view-loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>Chargement du pipeline...</p>
+    </div>
+  </div>
+
+  <!-- VUE TACHES KANBAN -->
+  <div id="tasksView" style="display:none;">
+    <div class="view-header">
+      <h2 class="view-title">Tâches</h2>
+      <div class="header-actions">
+        <button id="massSelectBtn" class="icon-btn" title="Sélection en masse">☑</button>
+        <button id="refreshTasks" class="icon-btn" title="Rafraîchir">↻</button>
+      </div>
+    </div>
+    <!-- Toggle vue : par Action / par Urgence -->
+    <div class="kanban-view-toggle">
+      <button id="kanbanViewAction" class="kanban-toggle-btn active" title="Par action">📋 Par action</button>
+      <button id="kanbanViewUrgency" class="kanban-toggle-btn" title="Par urgence">⏰ Par urgence</button>
+    </div>
+
+    <!-- VUE PAR ACTION (défaut) — groupement intelligent par type de relance -->
+    <div class="kanban-board" id="kanbanBoardAction">
+      <div class="kanban-column kanban-col-r1">
+        <div class="kanban-column-header">
+          <span class="kanban-column-dot action-r1"></span>
+          <span class="kanban-column-title">📧→📞 Passer R1</span>
+          <span class="kanban-column-count" id="kanbanR1Count">0</span>
+        </div>
+        <div class="kanban-column-body" id="kanbanR1List" data-action="R1"></div>
+      </div>
+      <div class="kanban-column kanban-col-r2">
+        <div class="kanban-column-header">
+          <span class="kanban-column-dot action-r2"></span>
+          <span class="kanban-column-title">📞 Passer R2</span>
+          <span class="kanban-column-count" id="kanbanR2Count">0</span>
+        </div>
+        <div class="kanban-column-body" id="kanbanR2List" data-action="R2"></div>
+      </div>
+      <div class="kanban-column kanban-col-r3">
+        <div class="kanban-column-header">
+          <span class="kanban-column-dot action-r3"></span>
+          <span class="kanban-column-title">📞 Passer R3</span>
+          <span class="kanban-column-count" id="kanbanR3Count">0</span>
+        </div>
+        <div class="kanban-column-body" id="kanbanR3List" data-action="R3"></div>
+      </div>
+      <div class="kanban-column kanban-col-rappel">
+        <div class="kanban-column-header">
+          <span class="kanban-column-dot action-rappel"></span>
+          <span class="kanban-column-title">🔔 Rappels</span>
+          <span class="kanban-column-count" id="kanbanRappelCount">0</span>
+        </div>
+        <div class="kanban-column-body" id="kanbanRappelList" data-action="rappel"></div>
+      </div>
+    </div>
+
+    <!-- VUE PAR URGENCE (classique) -->
+    <div class="kanban-board" id="kanbanBoardUrgency" style="display:none;">
+      <div class="kanban-column kanban-overdue">
+        <div class="kanban-column-header">
+          <span class="kanban-column-dot overdue"></span>
+          <span class="kanban-column-title">En retard</span>
+          <span class="kanban-column-count" id="kanbanOverdueCount">0</span>
+        </div>
+        <div class="kanban-column-body" id="kanbanOverdueList"></div>
+      </div>
+      <div class="kanban-column kanban-today">
+        <div class="kanban-column-header">
+          <span class="kanban-column-dot today"></span>
+          <span class="kanban-column-title">Aujourd'hui</span>
+          <span class="kanban-column-count" id="kanbanTodayCount">0</span>
+        </div>
+        <div class="kanban-column-body" id="kanbanTodayList"></div>
+      </div>
+      <div class="kanban-column kanban-upcoming">
+        <div class="kanban-column-header">
+          <span class="kanban-column-dot upcoming"></span>
+          <span class="kanban-column-title">À venir</span>
+          <span class="kanban-column-count" id="kanbanUpcomingCount">0</span>
+        </div>
+        <div class="kanban-column-body" id="kanbanUpcomingList"></div>
+      </div>
+    </div>
+    <div id="tasksEmpty" class="empty-state" style="display:none;">
+      <span class="empty-icon">✅</span>
+      <p>Aucune tâche planifiée</p>
+      <small>Les tâches apparaîtront ici quand vous programmerez des relances.</small>
+    </div>
+    <div id="tasksLoading" class="view-loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>Chargement des tâches...</p>
+    </div>
+  </div>
+
+  <!-- MODAL PROPOSITION ACTION SUIVANTE -->
+  <div id="nextActionModal" class="next-action-modal" style="display:none;">
+    <div class="next-action-modal-content">
+      <div class="next-action-header">
+        <span class="next-action-icon">🔮</span>
+        <span class="next-action-title">Action suivante ?</span>
+        <button id="nextActionClose" class="next-action-close">✕</button>
+      </div>
+
+      <!-- Proposition standard (mail→R1, R1→R2, etc.) -->
+      <div id="nextActionProposal" class="next-action-proposal" style="display:none;">
+        <p id="nextActionDescription" class="next-action-desc"></p>
+        <div class="next-action-buttons">
+          <button id="nextActionAccept" class="btn-primary btn-sm">✅ Programmer</button>
+          <button id="nextActionSkip" class="btn-secondary btn-sm">⏭️ Ignorer</button>
+        </div>
+      </div>
+
+      <!-- Resultat d'appel (appeler/rappeler) -->
+      <div id="nextActionCallOutcome" class="next-action-proposal" style="display:none;">
+        <p class="next-action-desc">Resultat de l'appel :</p>
+        <div class="next-action-buttons">
+          <button class="btn-outcome" data-outcome="nrp">📵 NRP</button>
+          <button class="btn-outcome" data-outcome="repondu">📞 Repondu</button>
+        </div>
+      </div>
+
+      <!-- Date/heure du RDV -->
+      <div id="nextActionRdvPicker" class="next-action-proposal" style="display:none;">
+        <p class="next-action-desc">Date et heure du RDV :</p>
+        <div class="rdv-picker-row">
+          <input type="date" id="rdvDate" class="rdv-input">
+          <input type="time" id="rdvTime" class="rdv-input" value="10:00">
+        </div>
+        <div class="next-action-buttons" style="margin-top:10px;">
+          <button id="rdvConfirm" class="btn-primary btn-sm">📅 Confirmer RDV</button>
+          <button id="rdvCancel" class="btn-secondary btn-sm">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Fin de cycle R3 -->
+      <div id="nextActionEndCycle" class="next-action-proposal" style="display:none;">
+        <p class="next-action-desc">Fin du cycle de relance. Que faire ?</p>
+        <div class="next-action-buttons vertical">
+          <button class="btn-outcome" data-outcome="close">🚫 Marquer "Pas interesse"</button>
+          <button class="btn-outcome" data-outcome="rappeler">🔔 Reprogrammer un rappel</button>
+          <button class="btn-outcome" data-outcome="skip">⏭️ Ne rien faire</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared-config.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

@@ -4,8 +4,9 @@
 // + Integration Microsoft Outlook via Graph API
 // ============================================================
 
-// Charger le module Outlook API
+// Charger les modules API
 importScripts('outlook-api.js');
+importScripts('boond-api.js');
 
 /**
  * MAPPING DES NOMS DE COLONNES NOTION
@@ -285,6 +286,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "saveOutlookClientId") {
     chrome.storage.local.set({ [OUTLOOK_CONFIG.clientIdStorageKey]: request.clientId })
       .then(() => sendResponse({ success: true }))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+
+  // ============================================================
+  // BOONDMANAGER API HANDLERS
+  // ============================================================
+
+  if (request.action === "sendToBoond") {
+    handleSendToBoond(request.data)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+
+  if (request.action === "boondStatus") {
+    getBoondConnectionStatus()
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+
+  if (request.action === "boondTestConnection") {
+    testBoondConnection()
+      .then(result => sendResponse(result))
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
   }

@@ -41,9 +41,16 @@ const el = {
   // Parametres
   notionApiKey: document.getElementById("notionApiKey"),
   notionDatabaseId: document.getElementById("notionDatabaseId"),
-  // Boond (desactives pour l'instant)
+  // Boond
   sendToBoond: document.getElementById("sendToBoond"),
   sendToBoth: document.getElementById("sendToBoth"),
+  boondInstance: document.getElementById("boondInstance"),
+  boondUserToken: document.getElementById("boondUserToken"),
+  boondClientToken: document.getElementById("boondClientToken"),
+  boondClientKey: document.getElementById("boondClientKey"),
+  boondStatusIndicator: document.getElementById("boondStatusIndicator"),
+  boondStatusLabel: document.getElementById("boondStatusLabel"),
+  boondTestBtn: document.getElementById("boondTestBtn"),
   // Actions rapides
   actionsSection: document.getElementById("actionsSection"),
   actionFeedback: document.getElementById("actionFeedback"),
@@ -1807,14 +1814,26 @@ el.saveSettings.addEventListener("click", async () => {
   const openaiField = document.getElementById("openaiApiKey");
   const openaiKey = openaiField ? openaiField.value.trim() : "";
   if (openaiKey) storageData.openaiApiKey = openaiKey;
+  // BoondManager credentials
+  const boondInst = el.boondInstance ? el.boondInstance.value.trim() : "";
+  const boondUT = el.boondUserToken ? el.boondUserToken.value.trim() : "";
+  const boondCT = el.boondClientToken ? el.boondClientToken.value.trim() : "";
+  const boondCK = el.boondClientKey ? el.boondClientKey.value.trim() : "";
+  if (boondInst) storageData.boondInstance = boondInst;
+  if (boondUT) storageData.boondUserToken = boondUT;
+  if (boondCT) storageData.boondClientToken = boondCT;
+  if (boondCK) storageData.boondClientKey = boondCK;
   await chrome.storage.local.set(storageData);
+
+  // Mettre a jour le statut Boond apres sauvegarde
+  updateBoondStatus();
 
   el.settingsSuccess.style.display = "flex";
   setTimeout(() => el.settingsSuccess.style.display = "none", 2500);
 });
 
 async function loadSettings() {
-  const settings = await chrome.storage.local.get(["notionApiKey", "notionDatabaseId", "lushaApiKey", "outlookClientId", "themePreference", "openaiApiKey"]);
+  const settings = await chrome.storage.local.get(["notionApiKey", "notionDatabaseId", "lushaApiKey", "outlookClientId", "themePreference", "openaiApiKey", "boondInstance", "boondUserToken", "boondClientToken", "boondClientKey"]);
   if (settings.notionApiKey) el.notionApiKey.value = settings.notionApiKey;
   if (settings.notionDatabaseId) el.notionDatabaseId.value = settings.notionDatabaseId;
   const lushaField = document.getElementById("lushaApiKey");
@@ -1826,11 +1845,18 @@ async function loadSettings() {
   // OpenAI API Key
   const openaiField = document.getElementById("openaiApiKey");
   if (openaiField && settings.openaiApiKey) openaiField.value = settings.openaiApiKey;
+  // BoondManager credentials
+  if (settings.boondInstance && el.boondInstance) el.boondInstance.value = settings.boondInstance;
+  if (settings.boondUserToken && el.boondUserToken) el.boondUserToken.value = settings.boondUserToken;
+  if (settings.boondClientToken && el.boondClientToken) el.boondClientToken.value = settings.boondClientToken;
+  if (settings.boondClientKey && el.boondClientKey) el.boondClientKey.value = settings.boondClientKey;
   // Thème clair/sombre
   const theme = settings.themePreference || "dark";
   document.documentElement.setAttribute("data-theme", theme);
   const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) themeToggle.checked = (theme === "light");
+  // Mettre a jour le statut Boond
+  updateBoondStatus();
 }
 
 // ============================================================
@@ -2691,23 +2717,245 @@ function mapLabelToActionType(label) {
 }
 
 // ============================================================
-// BOUTONS BOOND (placeholder - desactives)
-// Prepares pour activation future quand l'API sera disponible
+// BOONDMANAGER - Statut et envoi
 // ============================================================
-if (el.sendToBoond) {
-  el.sendToBoond.addEventListener("click", () => {
-    // Petit effet visuel pour indiquer que c'est desactive
-    el.sendToBoond.style.animation = "shake 0.3s ease";
-    setTimeout(() => el.sendToBoond.style.animation = "", 300);
-    updateStatus("idle", "Boond : API pas encore configuree");
+
+/**
+ * Verifie le statut de connexion Boond et active/desactive les boutons
+ */
+async function updateBoondStatus() {
+  try {
+    const result = await chrome.runtime.sendMessage({ action: "boondStatus" });
+    if (result && result.isConfigured) {
+      if (el.boondStatusIndicator) {
+        el.boondStatusIndicator.className = "outlook-status-indicator connected";
+      }
+      if (el.boondStatusLabel) {
+        el.boondStatusLabel.textContent = "Configuré";
+      }
+      if (el.sendToBoond) el.sendToBoond.disabled = false;
+      if (el.sendToBoth) el.sendToBoth.disabled = false;
+    } else {
+      if (el.boondStatusIndicator) {
+        el.boondStatusIndicator.className = "outlook-status-indicator disconnected";
+      }
+      if (el.boondStatusLabel) {
+        el.boondStatusLabel.textContent = "Non configuré";
+      }
+      if (el.sendToBoond) el.sendToBoond.disabled = true;
+      if (el.sendToBoth) el.sendToBoth.disabled = true;
+    }
+  } catch (err) {
+    console.warn("[AGATE] Boond status check error:", err);
+  }
+}
+
+// Test connexion Boond
+if (el.boondTestBtn) {
+  el.boondTestBtn.addEventListener("click", async () => {
+    // Sauvegarder d'abord les credentials en cours de saisie
+    const boondInst = el.boondInstance ? el.boondInstance.value.trim() : "";
+    const boondUT = el.boondUserToken ? el.boondUserToken.value.trim() : "";
+    const boondCT = el.boondClientToken ? el.boondClientToken.value.trim() : "";
+    const boondCK = el.boondClientKey ? el.boondClientKey.value.trim() : "";
+
+    if (!boondUT || !boondCT || !boondCK) {
+      showToast("Remplissez les 3 champs tokens (User Token, Client Token, Client Key).", "warning");
+      return;
+    }
+
+    // Sauvegarder temporairement pour que le service worker les lise
+    await chrome.storage.local.set({
+      boondInstance: boondInst,
+      boondUserToken: boondUT,
+      boondClientToken: boondCT,
+      boondClientKey: boondCK
+    });
+
+    // UI loading
+    el.boondTestBtn.disabled = true;
+    const originalHTML = el.boondTestBtn.innerHTML;
+    el.boondTestBtn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;"></div> Test en cours...';
+
+    try {
+      const result = await chrome.runtime.sendMessage({ action: "boondTestConnection" });
+
+      if (result.success) {
+        showToast("Connexion BoondManager reussie !", "success");
+        if (el.boondStatusIndicator) el.boondStatusIndicator.className = "outlook-status-indicator connected";
+        if (el.boondStatusLabel) el.boondStatusLabel.textContent = "Connecté";
+        if (el.sendToBoond) el.sendToBoond.disabled = false;
+        if (el.sendToBoth) el.sendToBoth.disabled = false;
+      } else {
+        showToast("Echec connexion : " + (result.error || "Erreur inconnue"), "error");
+        if (el.boondStatusIndicator) el.boondStatusIndicator.className = "outlook-status-indicator disconnected";
+        if (el.boondStatusLabel) el.boondStatusLabel.textContent = "Echec connexion";
+      }
+    } catch (error) {
+      showToast("Erreur : " + error.message, "error");
+    }
+
+    el.boondTestBtn.innerHTML = originalHTML;
+    el.boondTestBtn.disabled = false;
   });
 }
 
+// Envoi vers Boond
+if (el.sendToBoond) {
+  el.sendToBoond.addEventListener("click", async () => {
+    // Verifier config
+    const status = await chrome.runtime.sendMessage({ action: "boondStatus" });
+    if (!status || !status.isConfigured) {
+      showToast("Configurez vos credentials BoondManager dans les parametres.", "warning");
+      return;
+    }
+
+    // Verifier nom
+    if (!el.fieldName.value.trim()) {
+      showToast("Le nom du prospect est obligatoire.", "error");
+      return;
+    }
+
+    // UI loading
+    el.sendToBoond.disabled = true;
+    const originalHTML = el.sendToBoond.innerHTML;
+    el.sendToBoond.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Envoi...';
+
+    try {
+      const prospectData = getCurrentFormData();
+      const result = await chrome.runtime.sendMessage({
+        action: "sendToBoond",
+        data: prospectData
+      });
+
+      if (result.success) {
+        showToast("Contact ajouté dans BoondManager !", "success");
+        el.sendToBoond.innerHTML = '<span class="btn-icon">&#10003;</span> Envoyé !';
+        updateStatus("connected", "Contact envoyé dans Boond !");
+        setTimeout(() => {
+          el.sendToBoond.innerHTML = originalHTML;
+          el.sendToBoond.disabled = false;
+        }, 2000);
+      } else if (result.duplicate) {
+        showToast("Contact déjà présent dans BoondManager : " + (result.contactName || ""), "warning");
+        el.sendToBoond.innerHTML = originalHTML;
+        el.sendToBoond.disabled = false;
+      } else {
+        throw new Error(result.error || "Erreur inconnue");
+      }
+    } catch (error) {
+      showToast("Erreur Boond : " + error.message, "error");
+      el.sendToBoond.innerHTML = originalHTML;
+      el.sendToBoond.disabled = false;
+      updateStatus("error", "Erreur envoi Boond");
+    }
+  });
+}
+
+// Envoi vers les deux (Notion + Boond)
 if (el.sendToBoth) {
-  el.sendToBoth.addEventListener("click", () => {
-    el.sendToBoth.style.animation = "shake 0.3s ease";
-    setTimeout(() => el.sendToBoth.style.animation = "", 300);
-    updateStatus("idle", "Boond : API pas encore configuree");
+  el.sendToBoth.addEventListener("click", async () => {
+    // Verifier config Notion
+    const notionSettings = await chrome.storage.local.get(["notionApiKey", "notionDatabaseId"]);
+    if (!notionSettings.notionApiKey || !notionSettings.notionDatabaseId) {
+      showToast("Configurez d'abord votre clé API et ID de base Notion.", "warning");
+      return;
+    }
+
+    // Verifier config Boond
+    const boondStatus = await chrome.runtime.sendMessage({ action: "boondStatus" });
+    if (!boondStatus || !boondStatus.isConfigured) {
+      showToast("Configurez vos credentials BoondManager dans les parametres.", "warning");
+      return;
+    }
+
+    // Verifier nom
+    if (!el.fieldName.value.trim()) {
+      showToast("Le nom du prospect est obligatoire.", "error");
+      return;
+    }
+
+    // UI loading
+    el.sendToBoth.disabled = true;
+    if (el.sendToNotion) el.sendToNotion.disabled = true;
+    if (el.sendToBoond) el.sendToBoond.disabled = true;
+    const originalHTML = el.sendToBoth.innerHTML;
+    el.sendToBoth.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Envoi parallele...';
+
+    try {
+      const prospectData = getCurrentFormData();
+
+      // Envoi parallele Notion + Boond
+      const [notionResult, boondResult] = await Promise.allSettled([
+        chrome.runtime.sendMessage({
+          action: "sendToNotion",
+          data: prospectData,
+          apiKey: notionSettings.notionApiKey,
+          databaseId: notionSettings.notionDatabaseId
+        }),
+        chrome.runtime.sendMessage({
+          action: "sendToBoond",
+          data: prospectData
+        })
+      ]);
+
+      const notionOk = notionResult.status === "fulfilled" && notionResult.value?.success;
+      const boondOk = boondResult.status === "fulfilled" && boondResult.value?.success;
+      const notionDup = notionResult.status === "fulfilled" && notionResult.value?.duplicate;
+      const boondDup = boondResult.status === "fulfilled" && boondResult.value?.duplicate;
+
+      // Gestion des resultats
+      if (notionOk && boondOk) {
+        showToast("Contact ajouté dans Notion ET Boond !", "success");
+        el.sendToBoth.innerHTML = '<span class="btn-icon">&#10003;</span> Envoyé !';
+        updateStatus("connected", "Contact envoyé dans les deux CRM !");
+        // Sauvegarder le pageId pour les actions
+        if (notionResult.value.pageId) {
+          currentNotionPageId = notionResult.value.pageId;
+          if (el.actionsSection) el.actionsSection.style.display = "block";
+        }
+      } else if (notionOk && !boondOk) {
+        const boondMsg = boondDup
+          ? "doublon détecté"
+          : (boondResult.value?.error || boondResult.reason?.message || "erreur");
+        showToast(`Notion OK, Boond: ${boondMsg}`, "warning");
+        el.sendToBoth.innerHTML = '<span class="btn-icon">⚠</span> Partiel';
+        if (notionResult.value.pageId) {
+          currentNotionPageId = notionResult.value.pageId;
+          if (el.actionsSection) el.actionsSection.style.display = "block";
+        }
+      } else if (!notionOk && boondOk) {
+        const notionMsg = notionDup
+          ? "doublon détecté"
+          : (notionResult.value?.error || notionResult.reason?.message || "erreur");
+        showToast(`Boond OK, Notion: ${notionMsg}`, "warning");
+        el.sendToBoth.innerHTML = '<span class="btn-icon">⚠</span> Partiel';
+      } else {
+        // Les deux ont echoue
+        const msgs = [];
+        if (notionDup) msgs.push("Notion: doublon");
+        else msgs.push("Notion: " + (notionResult.value?.error || notionResult.reason?.message || "erreur"));
+        if (boondDup) msgs.push("Boond: doublon");
+        else msgs.push("Boond: " + (boondResult.value?.error || boondResult.reason?.message || "erreur"));
+        showToast(msgs.join(" | "), "error");
+        el.sendToBoth.innerHTML = '<span class="btn-icon">✕</span> Echec';
+      }
+
+      setTimeout(() => {
+        el.sendToBoth.innerHTML = originalHTML;
+        el.sendToBoth.disabled = false;
+        if (el.sendToNotion) el.sendToNotion.disabled = false;
+        if (el.sendToBoond) el.sendToBoond.disabled = false;
+      }, 2500);
+
+    } catch (error) {
+      showToast("Erreur : " + error.message, "error");
+      el.sendToBoth.innerHTML = originalHTML;
+      el.sendToBoth.disabled = false;
+      if (el.sendToNotion) el.sendToNotion.disabled = false;
+      if (el.sendToBoond) el.sendToBoond.disabled = false;
+      updateStatus("error", "Erreur envoi");
+    }
   });
 }
 

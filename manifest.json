@@ -17,7 +17,8 @@
     "https://api.lusha.com/*",
     "https://graph.microsoft.com/*",
     "https://login.microsoftonline.com/*",
-    "https://api.openai.com/*"
+    "https://api.openai.com/*",
+    "https://*.boondmanager.com/*"
   ],
   "action": {
     "default_icon": {

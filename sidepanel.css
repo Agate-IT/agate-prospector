@@ -629,33 +629,108 @@ small a:hover {
   font-size: 16px;
 }
 
-/* === BOUTONS BOOND (desactives) === */
-.btn-boond, .btn-both {
+/* === BOUTON BOOND (actif) === */
+.btn-boond {
   width: 100%;
-  padding: 12px 18px;
-  background: var(--bg-input);
-  color: var(--text-muted);
-  border: 1px dashed var(--border);
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
   border-radius: var(--radius-md);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm), 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.btn-boond:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), 0 0 30px rgba(16, 185, 129, 0.25);
+}
+
+.btn-boond:active {
+  transform: translateY(0);
+}
+
+.btn-boond:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Bouton test connexion Boond (settings) */
+.btn-boond-test {
+  width: 100%;
+  padding: 10px 16px;
+  margin-top: 8px;
+  background: transparent;
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  opacity: 0.5;
+  transition: all 0.2s ease;
 }
 
-.badge-soon {
-  font-size: 9px;
-  background: var(--accent);
+.btn-boond-test:hover {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.btn-boond-test:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === BOUTON BOTH (Notion + Boond) === */
+.btn-both {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--accent) 0%, #10b981 100%);
   color: white;
-  padding: 2px 8px;
-  border-radius: 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm), 0 0 20px rgba(99, 102, 241, 0.1);
+}
+
+.btn-both:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), 0 0 30px rgba(99, 102, 241, 0.2);
+}
+
+.btn-both:active {
+  transform: translateY(0);
+}
+
+.btn-both:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Masquer badge-soon (plus utilise) */
+.badge-soon {
+  display: none;
 }
 
 /* === BOUTON VCARD === */

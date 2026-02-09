@@ -213,16 +213,14 @@
           Envoyer dans Notion
         </button>
 
-        <button id="sendToBoond" class="btn-boond" disabled title="Bientôt disponible">
+        <button id="sendToBoond" class="btn-boond" title="Envoyer dans BoondManager">
           <span class="btn-icon">→</span>
           Envoyer dans Boond
-          <span class="badge-soon">Bientôt</span>
         </button>
 
-        <button id="sendToBoth" class="btn-both" disabled title="Bientôt disponible">
+        <button id="sendToBoth" class="btn-both" title="Envoyer dans Notion et BoondManager">
           <span class="btn-icon">→</span>
           Envoyer dans les deux
-          <span class="badge-soon">Bientôt</span>
         </button>
 
         <button id="exportVcard" class="btn-vcard" title="Exporter en vCard pour Contacts Apple">
@@ -360,6 +358,44 @@
         <input type="password" id="openaiApiKey" placeholder="sk-xxxxxxxx...">
         <small>Pour le pitch IA automatique. <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--accent-light);">Obtenir une clé</a></small>
       </div>
+
+      <!-- BoondManager CRM -->
+      <div class="settings-divider"></div>
+      <div class="section-title" style="margin-top: 16px;">📗 BoondManager CRM</div>
+      <small class="settings-help-text">Connectez votre BoondManager pour envoyer les contacts vers les deux CRM.</small>
+
+      <div class="form-group">
+        <label for="boondInstance">Instance (sous-domaine)</label>
+        <input type="text" id="boondInstance" placeholder="Ex: agate-it">
+        <small>Le nom avant .boondmanager.com (ex: <strong>agate-it</strong>.boondmanager.com)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="boondUserToken">User Token</label>
+        <input type="password" id="boondUserToken" placeholder="Votre User Token Boond">
+      </div>
+
+      <div class="form-group">
+        <label for="boondClientToken">Client Token</label>
+        <input type="password" id="boondClientToken" placeholder="Token client (espace développeur)">
+      </div>
+
+      <div class="form-group">
+        <label for="boondClientKey">Client Key</label>
+        <input type="password" id="boondClientKey" placeholder="Votre User Token Boond">
+      </div>
+
+      <div id="boondConnectionStatus" class="outlook-status">
+        <div id="boondStatusIndicator" class="outlook-status-indicator disconnected">
+          <span class="outlook-status-dot"></span>
+          <span id="boondStatusLabel">Non configuré</span>
+        </div>
+      </div>
+
+      <button id="boondTestBtn" class="btn-boond-test">
+        <span class="btn-icon">🔗</span>
+        Tester la connexion
+      </button>
 
       <!-- Templates Email Personnalisés -->
       <div class="settings-divider"></div>

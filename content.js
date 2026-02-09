@@ -4,6 +4,12 @@
 // Position : entre le header du profil et la section Activite
 // ============================================================
 
+// Protection contre la double injection
+if (window.AGATE_PROSPECTOR_LOADED) {
+  console.log("🚀 [AGATE] Script déjà chargé, arrêt.");
+} else {
+  window.AGATE_PROSPECTOR_LOADED = true;
+
 // TEST IMMEDIAT - Ce message doit apparaitre dans la console
 console.log("🚀 [AGATE] ========== CONTENT SCRIPT DEMARRE ==========");
 console.log("🚀 [AGATE] URL:", window.location.href);
@@ -196,12 +202,12 @@ function detectSector(companyName, profileText) {
 // ============================================================
 // DETECTION TAGS TECHNOS (regex pre-compilees au chargement)
 // ============================================================
-const COMPILED_TECH_REGEXES = Object.keys(TECH_TAGS)
+const COMPILED_TECH_REGEXES = typeof TECH_TAGS !== 'undefined' ? Object.keys(TECH_TAGS)
   .sort((a, b) => b.length - a.length)
   .map(key => ({
     regex: new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'),
     tag: TECH_TAGS[key]
-  }));
+  })) : [];
 
 const _techTagCache = new Map();
 
@@ -4267,3 +4273,4 @@ if (document.readyState === "loading") {
   console.log("[AGATE] DOM deja pret - lancement checkAndInject dans 500ms");
   setTimeout(checkAndInject, 500);
 }
+} // Fin protection double injection
